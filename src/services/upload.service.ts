@@ -266,15 +266,13 @@ export function replaceImageLinks(
     }
   });
 
-  // 替换内容中的图片链接
+  // 替换内容中的图片和附件链接
   pathToUrlMap.forEach((newUrl, originalPath) => {
     // 转义特殊字符以安全地用于正则表达式
     const escapedPath = originalPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(`!\\[.*?\\]\\(${escapedPath}\\)`, "g");
-    updatedContent = updatedContent.replace(regex, (match) => {
-      // 提取原始的 alt 文本
-      const altText = match.match(/!\[(.*?)\]/)?.[1] || "";
-      return `![${altText}](${newUrl})`;
+    const regex = new RegExp(`(!?)\\[(.*?)\\]\\(${escapedPath}\\)`, "g");
+    updatedContent = updatedContent.replace(regex, (match, isImage, text) => {
+      return `${isImage}[${text}](${newUrl})`;
     });
   });
 

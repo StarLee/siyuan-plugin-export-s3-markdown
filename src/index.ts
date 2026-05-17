@@ -43,9 +43,10 @@ const axios_plus = axios.create({
 
 function getFilePathsFromMd(content: string) {
   return (
-    content.match(/!\[.*?]\((.*?)\)/g)?.map((match) => {
-      return match.match(/\((.*?)\)/)[1];
-    }) ?? []
+    content.match(/!?\[.*?\]\((.*?)\)/g)?.map((match) => {
+      const m = match.match(/\]\((.*?)\)/);
+      return m ? m[1] : "";
+    }).filter(url => url && !url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("siyuan://") && !url.startsWith("#")) ?? []
   );
 }
 
@@ -1362,11 +1363,9 @@ export default class PluginSample extends Plugin {
       pathToUrlMap.forEach((newUrl, originalPath) => {
         // 转义特殊字符以安全地用于正则表达式
         const escapedPath = originalPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const regex = new RegExp(`!\\[.*?\\]\\(${escapedPath}\\)`, "g");
-        updatedContent = updatedContent.replace(regex, (match) => {
-          // 提取原始的alt文本
-          const altText = match.match(/!\[(.*?)\]/)?.[1] || "";
-          return `![${altText}](${newUrl})`;
+        const regex = new RegExp(`(!?)\\[(.*?)\\]\\(${escapedPath}\\)`, "g");
+        updatedContent = updatedContent.replace(regex, (match, isImage, text) => {
+          return `${isImage}[${text}](${newUrl})`;
         });
       });
 
